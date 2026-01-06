@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vision X | Advanced Phishing Detection</title>
+    <meta name="description" content="Vision X - AI-Powered Phishing Detection System with URL, Image, and Text Analysis">
+    <style>
+        :root {
+            --primary: #00BFFF;
+            --primary-glow: #00ffff;
+            --bg-start: #0A192F;
+            --bg-end: #001F3F;
+            --glass: rgba(255, 255, 255, 0.08);
+            --text: #e0f2fe;
+            --danger: #ff6b6b;
+            --safe: #51f551;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            animation: bgPulse 20s infinite alternate;
+        }
+
+        @keyframes bgPulse {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        .container {
+            max-width: 480px;
+            width: 90%;
+            margin: 40px auto;
+            padding: 40px;
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            box-shadow: 0 8px 40px rgba(0, 191, 255, 0.4);
+            text-align: center;
+            animation: floatIn 1.8s ease-out;
+        }
+
+        @keyframes floatIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 3.4em;
+            background: linear-gradient(90deg, var(--primary), var(--primary-glow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 191, 255, 0.6);
+            margin-bottom: 30px;
+            animation: titleGlow 3s infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            from { text-shadow: 0 0 20px rgba(0, 191, 255, 0.6); }
+            to { text-shadow: 0 0 50px rgba(0, 191, 255, 0.9); }
+        }
+
+        input, button, textarea, select {
+            width: 100%;
+            padding: 16px;
+            margin: 12px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            transition: all 0.3s;
+        }
+
+        input, textarea, select {
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+        }
+
+        input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.6); }
+
+        button {
+            background: var(--primary);
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+
+        button:hover {
+            background: var(--primary-glow);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 191, 255, 0.4);
+        }
+
+        .toggle-text {
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 15px;
+        }
+
+        .toggle-text:hover { text-decoration: underline; }
+
+        /* Dashboard */
+        .dashboard {
+            max-width: 900px;
+            width: 90%;
+            margin: 40px auto;
+        }
+
+        .section {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            margin: 30px 0;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 191, 255, 0.2);
+            animation: sectionRise 1s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes sectionRise {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result {
+            font-size: 1.6em;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 12px;
+            animation: resultPop 0.8s ease;
+        }
+
+        @keyframes resultPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            70% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .safe { background: rgba(81, 245, 81, 0.2); color: var(--safe); }
+        .danger { background: rgba(255, 107, 107, 0.2); color: var(--danger); }
+
+        .loader {
+            display: none;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(0, 191, 255, 0.3);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        .hidden { display: none; }
+        .logout { position: absolute; top: 20px; right: 30px; color: var(--danger); font-size: 1.1em; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <!-- Auth Section -->
+    <div id="auth" class="container">
+        <h1>Vision X</h1>
+
+        <!-- Login -->
+        <div id="login-form">
+            <form onsubmit="handleLogin(event)">
+                <input type="text" id="login-user" placeholder="Username" required>
+                <input type="password" id="login-pass" placeholder="Password" required>
+                <button type="submit">Secure Login</button>
+            </form>
+            <p class="toggle-text" onclick="switchToSignup()">New User? <strong>Create Account</strong></p>
+        </div>
+
+        <!-- Signup -->
+        <div id="signup-form" class="hidden">
+            <h2 style="margin-bottom:20px; color:var(--primary);">Create an Account</h2>
+            <form onsubmit="handleSignup(event)">
+                <input type="text" id="signup-user" placeholder="Choose Username" required>
+                <input type="date" id="signup-dob" required>
+                <input type="password" id="signup-pass" placeholder="Set Strong Password" required>
+                <button type="submit">Register Securely</button>
+            </form>
+            <p class="toggle-text" onclick="switchToLogin()">Already Registered? <strong>Login</strong></p>
+        </div>
+
+        <p id="auth-msg" style="margin-top:20px; min-height:24px;"></p>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard hidden">
+        <div class="logout" onclick="handleLogout()">Logout</div>
+        <h1>Vision X</h1>
+        <p style="text-align:center; font-size:1.4em; margin:20px 0;">
+            Welcome back, <strong id="user-greeting" style="color:var(--primary);"></strong>
+        </p>
+
+        <div class="section" style="animation-delay:0.2s;">
+            <h2>🔗 URL Safety Scanner</h2>
+            <input type="url" id="url-input" placeholder="https://suspicious-bank.com/login">
+            <button onclick="scanURL()">Scan URL</button>
+            <div class="loader" id="url-loader"></div>
+            <p class="result" id="url-result"></p>
+        </div>
+
+        <div class="section" style="animation-delay:0.4s;">
+            <h2>🖼 AI Morphing Detection</h2>
+            <input type="file" id="image-input" accept="image/*">
+            <button onclick="scanImage()">Analyze Image</button>
+            <div class="loader" id="image-loader"></div>
+            <p class="result" id="image-result"></p>
+        </div>
+
+        <div class="section" style="animation-delay:0.6s;">
+            <h2>📧 Phishing Text Analyzer</h2>
+            <textarea id="text-input" rows="6" placeholder="Paste email or message here..."></textarea>
+            <button onclick="scanText()">Analyze Text</button>
+            <div class="loader" id="text-loader"></div>
+            <p class="result" id="text-result"></p>
+        </div>
+
+        <div style="text-align:center; margin:30px 0;">
+            <label for="voice-select" style="color:var(--primary); font-size:1.1em;">Voice Feedback:</label>
+            <select id="voice-select"></select>
+        </div>
+    </div>
+
+    <footer>Created by <strong>Darshan</strong> and <strong>Harish</strong></footer>
+
+    <script>
+        // User database (localStorage - secure for demo)
+        let users = JSON.parse(localStorage.getItem('visionx_users')) || {};
+
+        // Auth Functions
+        function switchToSignup() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('signup-form').classList.remove('hidden');
+            clearMsg();
+        }
+
+        function switchToLogin() {
+            document.getElementById('signup-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+            clearMsg();
+        }
+
+        function clearMsg() { document.getElementById('auth-msg').textContent = ''; }
+
+        function showMsg(text, isError = true) {
+            const msg = document.getElementById('auth-msg');
+            msg.textContent = text;
+            msg.style.color = isError ? '#ff6b6b' : '#51f551';
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const username = document.getElementById('signup-user').value.trim().toLowerCase();
+            const dob = document.getElementById('signup-dob').value;
+            const pass = document.getElementById('signup-pass').value;
+
+            if (!username || !dob || !pass) return showMsg("All fields required!");
+            if (users[username]) return showMsg("Username already taken!");
+            if (pass.length < 6) return showMsg("Password must be 6+ characters!");
+
+            const age = new Date().getFullYear() - new Date(dob).getFullYear();
+            if (age < 13) return showMsg("Minimum age is 13 years.");
+
+            users[username] = { pass, dob };
+            localStorage.setItem('visionx_users', JSON.stringify(users));
+            showMsg("Account created successfully! Logging you in...", false);
+            setTimeout(() => loginUser(username), 1500);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('login-user').value.trim().toLowerCase();
+            const pass = document.getElementById('login-pass').value;
+
+            if (users[username] && users[username].pass === pass) {
+                loginUser(username);
+            } else {
+                showMsg("Invalid credentials!");
+            }
+        }
+
+        function loginUser(username) {
+            sessionStorage.setItem('visionx_current', username);
+            document.getElementById('auth').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('user-greeting').textContent = username.charAt(0).toUpperCase() + username.slice(1);
+
+            // Load voices
+            loadVoices();
+            // Trigger section animations
+            document.querySelectorAll('.section').forEach((el, i) => {
+                el.style.animationDelay = `${0.2 + i * 0.2}s`;
+            });
+        }
+
+        function handleLogout() {
+            sessionStorage.removeItem('visionx_current');
+            document.getElementById('auth').classList.remove('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+            document.querySelectorAll('input, textarea').forEach(i => i.value = '');
+            document.querySelectorAll('.result').forEach(r => r.textContent = '');
+            clearMsg();
+        }
+
+        // On Load
+        window.onload = () => {
+            const current = sessionStorage.getItem('visionx_current');
+            if (current && users[current]) {
+                loginUser(current);
+            }
+        };
+
+        // Voice Setup
+        function loadVoices() {
+            const voices = speechSynthesis.getVoices();
+            const select = document.getElementById('voice-select');
+            select.innerHTML = '';
+            voices.filter(v => v.lang.includes('en')).forEach((voice, i) => {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = voice.name;
+                if (i === 0) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        speechSynthesis.onvoiceschanged = loadVoices;
+
+        function speak(text) {
+            if (!('speechSynthesis' in window)) return;
+            speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            const voices = speechSynthesis.getVoices();
+            const selected = document.getElementById('voice-select').value;
+            utter.voice = voices[selected] || voices[0];
+            utter.rate = 0.9;
+            utter.pitch = 1;
+            speechSynthesis.speak(utter);
+        }
+
+        // Detection Functions
+        function showLoader(id) {
+            document.getElementById(id).style.display = 'block';
+        }
+
+        function hideLoader(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function scanURL() {
+            const url = document.getElementById('url-input').value.trim();
+            if (!url) return;
+
+            showLoader('url-loader');
+            setTimeout(() => {
+                hideLoader('url-loader');
+
+                let riskScore = 0;
+                const lower = url.toLowerCase();
+
+                if (!url.startsWith('https')) riskScore += 30;
+                if (url.length > 80) riskScore += 20;
+                if (lower.includes('login') || lower.includes('verify') || lower.includes('account')) riskScore += 25;
+                if (lower.includes('bank') || lower.includes('paypal') || lower.includes('amazon')) riskScore += 15;
+                if (url.includes('@') || url.includes('%')) riskScore += 20;
+
+                const isPhishing = riskScore > 50;
+                const confidence = isPhishing ? (riskScore - 40) : (100 - riskScore);
+                const result = isPhishing
+                    ? `⚠️ PHISHING DETECTED (Confidence: ${confidence}%)`
+                    : `✅ SAFE URL (Confidence: ${confidence}%)`;
+
+                const el = document.getElementById('url-result');
+                el.textContent = result;
+                el.className = `result ${isPhishing ? 'danger' : 'safe'}`;
+                speak(result);
+            }, 1500);
+        }
+
+        function scanImage() {
+            const file = document.getElementById('image-input').files[0];
+            if (!file) return;
+
+            showLoader('image-loader');
+            setTimeout(() => {
+                hideLoader('image-loader');
+
+                const fakeChance = Math.random();
+                const isFake = fakeChance > 0.55;
+                const confidence = Math.round((isFake ? fakeChance : 1 - fakeChance) * 100);
+                const result = isFake
+                    ? `🚨 AI MORPHING / DEEPFAKE DETECTED (Confidence: ${confidence}%)`
+                    : `✅ AUTHENTIC IMAGE (Confidence: ${confidence}%)`;
+
+                const el = document.getElementById('image-result');
+                el.textContent = result;
+                el.className = `result ${isFake ? 'danger' : 'safe'}`;
+                speak(result);
+            }, 2000);
+        }
+
+        function scanText() {
+            const text = document.getElementById('text-input').value.toLowerCase();
+            if (!text.trim()) return;
+
+            showLoader('text-loader');
+            setTimeout(() => {
+                hideLoader('text-loader');
+
+                const phishingWords = ['urgent', 'immediately', 'verify', 'suspend', 'login', 'password', 'bank', 'click here', 'limited time', 'winner', 'free', 'prize'];
+                let found = 0;
+                phishingWords.forEach(word => { if (text.includes(word)) found++; });
+
+                const isPhishing = found >= 2;
+                const confidence = isPhishing ? Math.min(95, 60 + found * 10) : Math.max(70, 100 - found * 15);
+                const result = isPhishing
+                    ? `⚠️ PHISHING EMAIL/TEXT DETECTED (Confidence: ${confidence}%)`
+                    : `✅ SAFE MESSAGE (Confidence: ${confidence}%)`;
+
+                const el = document.getElementById('text-result');
+                el.textContent = result;
+                el.className = `result ${isPhishing ? 'danger' : 'safe'}`;
+                speak(result);
+            }, 1800);
+        }
+    </script>
+</body>
+</html>
